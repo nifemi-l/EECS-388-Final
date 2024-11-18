@@ -82,22 +82,25 @@ while(1):
 
 		#Feed the frame to the model and get the control output
 		rad = model.y.eval(feed_dict={model.x: [img]})[0][0]
-		deg = rad2deg(rad)
-        
-        
+
+		# convert the possible float to an int
+		deg = str(int(rad2deg(rad)))
         
 		# Your code goes here in this if statement
 		# The if condition is used to send every 4th
 		# prediction from the model. This is so that
 		# the HiFive can run the other functions in between
 		if count%4 == 0:
-			pass
-			#Your code here.
+			# establish a serial connection
+			ser = serial.Serial("/dev/ttyAMA1", 115200) #Potentially change platformio to ttyAMA1
 
-		
-        
-        
-		pred_end   = time.time()
+			# convert the string to bytes
+			ser.write(bytes(deg))
+
+			# print an update (for debugging)
+			print(f"sent {deg} through serial communication.")
+
+		pred_end = time.time()
 
 		#Calculate the timings for each step
 		cam_time  = (prep_start - cam_start)*1000

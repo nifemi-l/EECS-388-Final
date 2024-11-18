@@ -53,6 +53,23 @@ int read_from_pi(int devid)
     // Task-2: 
     // You code goes here (Use Lab 09 for reference)
     // After performing Task-2 at dnn.py code, modify this part to read angle values from Raspberry Pi.
+    
+    char data [100];
+
+    while (1) {
+        if (ser_isready(devid))
+        {
+            int angle;
+
+            ser_readline(1, 100, data);
+
+            // change bytes to int
+            sscanf(data, "%d", &angle);
+
+            return angle;
+        }
+    }
+    return 0;
 
 }
 
@@ -61,6 +78,15 @@ void steering(int gpio, int pos)
     // Task-3: 
     // Your code goes here (Use Lab 05 for reference)
     // Check the project document to understand the task
+
+    int time_cycle = ((2400 - 544)/180)*pos + 544;
+    int rem_cycle = 20000 - time_cycle;
+
+    gpio_write(gpio, ON);
+    delay_usec(time_cycle);
+    gpio_write(gpio, OFF);
+    delay_usec(rem_cycle);
+    
 }
 
 
@@ -88,6 +114,7 @@ int main()
 
         auto_brake(lidar_to_hifive); // measuring distance using lidar and braking
         int angle = read_from_pi(pi_to_hifive); //getting turn direction from pi
+        
         printf("\nangle=%d", angle) 
         int gpio = PIN_19; 
         for (int i = 0; i < 10; i++){
