@@ -59,7 +59,7 @@ assert os.path.isfile(vid_path)
 cap = cv2.VideoCapture(vid_path)
 
 #Process the video while recording the operation execution times
-print('performing inference...')
+print('Performing inference...')
 time_start = time.time()
 first_frame = True
 count = 0
@@ -92,13 +92,15 @@ while(1):
 		# the HiFive can run the other functions in between
 		if count%4 == 0:
 			# establish a serial connection
-			ser = serial.Serial("/dev/ttyAMA1", 115200) #Potentially change platformio to ttyAMA1
+			ser = serial.Serial("/dev/ttyAMA1", 115200) # change platformio to ttyAMA1 (potentially temporary change)
 
 			# convert the string to bytes
 			ser.write(bytes(deg))
 
-			# print an update (for debugging)
-			print(f"sent {deg} through serial communication.")
+			# print status/debug message
+			# print(f"sent {deg} through serial communication.")
+			# ^^
+			print(f"Sent" + deg + "through serial communication.")
 
 		pred_end = time.time()
 
