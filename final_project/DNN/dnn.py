@@ -110,10 +110,10 @@ while(1):
 		pred_time = (pred_end - pred_start)*1000
 		tot_time  = (pred_end - cam_start)*1000
 
-		# print('pred: {:0.2f} deg. took: {:0.2f} ms | cam={:0.2f} prep={:0.2f} pred={:0.2f}'.format(deg, tot_time, cam_time, prep_time, pred_time))
+		# print('pred: {:0.2f} deg. took: {:0.2f} ms | cam={:0.2f} prep={:0.2f} pred={:0.2f}'.format(deg, tot_time, cam_time, prep_time, pred_time)
 
 		# python 2 compatibility
-		print('pred: ' + str(deg) + 'deg. took:' + str(tot_time) +  'ms | cam=' + str(cam_time) + ' prep=' + str(prep_time) + ' pred=' + str(pred_time)
+		print('pred: ' + str(deg) + 'deg. took:' + str(tot_time) +  'ms | cam=' + str(cam_time) + ' prep=' + str(prep_time) + ' pred=' + str(pred_time))
 		
 		#Don't include the timings for the first frame due to cache warmup
 		if first_frame:
