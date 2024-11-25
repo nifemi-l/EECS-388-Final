@@ -95,7 +95,7 @@ while(1):
 			ser = serial.Serial("/dev/ttyAMA1", 115200) # change platformio to ttyAMA1 (potentially temporary change)
 
 			# convert the string to bytes
-			ser.write(bytes(deg))
+			ser.write(bytes(deg) + '\n')
 
 			# print status/debug message
 			# print(f"sent {deg} through serial communication.")
