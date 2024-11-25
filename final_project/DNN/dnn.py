@@ -100,7 +100,7 @@ while(1):
 			# print status/debug message
 			# print(f"sent {deg} through serial communication.")
 			# ^^
-			print(f"Sent" + deg + "through serial communication.")
+			print("Sent" + deg + "through serial communication.")
 
 		pred_end = time.time()
 
