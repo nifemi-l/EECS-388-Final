@@ -68,6 +68,8 @@ while curFrame < NFRAMES:
 cap.release()
 print("video processing complete.")
 
+###
+
 #Calculate and output FPS/frequency
 fps = curFrame / (time.time() - time_start)
 print('completed inference, total frames: {}, average fps: {} Hz'.format(curFrame+1, round(fps, 1)))
