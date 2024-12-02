@@ -1,0 +1,55 @@
+# initialize serial connection once
+try:
+    ser = serial.Serial("/dev/ttyAMA1", 115200)
+    print("serial connection established on /dev/ttyAMA1")
+except serial.SerialException as e:
+    print(f"error initializing serial connection: {e}")
+    sys.exit(1)
+
+# inside the loop, send data
+if count % 4 == 0:
+    try:
+        ser.write((deg + '\n').encode())  # encode properly
+        print(f"sent {deg} through serial communication.")
+    except Exception as e:
+        print(f"error sending data: {e}")
+
+------------
+
+int read_from_pi(int devid)
+{
+    char data[100];
+
+    while (1) {
+        if (ser_isready(devid)) {
+            int angle;
+            ser_readline(devid, 100, data);
+
+            if (sscanf(data, "%d", &angle) == 1) {
+                printf("debug: received angle %d from pi\n", angle);
+                return angle;
+            } else {
+                printf("error: invalid angle data received: %s\n", data);
+            }
+        }
+    }
+    return 0; // default return if nothing received
+}
+
+-----------
+
+void steering(int gpio, int pos)
+{
+    if (pos < 0) pos = 0; // clamp to minimum
+    if (pos > 180) pos = 180; // clamp to maximum
+
+    int time_cycle = ((2400 - 544) / 180) * pos + 544;
+    int rem_cycle = 20000 - time_cycle;
+
+    gpio_write(gpio, ON);
+    delay_usec(time_cycle);
+    gpio_write(gpio, OFF);
+    delay_usec(rem_cycle);
+
+    printf("debug: servo moved to position %d\n", pos);
+}
