@@ -1,9 +1,8 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 from __future__ import division
 
-# Imports
+# imports
 import tensorflow as tf
-model = __import__("model")
 import cv2
 import sys
 import os
@@ -12,125 +11,62 @@ import math
 import numpy as np
 import serial
 
-ser1 = serial.Serial("/dev/ttyAMA1", 115200)
+# initialize serial connection
+try:
+    ser = serial.Serial("/dev/ttyAMA1", 115200)
+    print("serial connection established on /dev/ttyAMA1")
+except serial.SerialException as e:
+    print(f"error initializing serial connection: {e}")
+    sys.exit(1)
 
-# Radian <-> Degree conversion functions
+# radian <-> degree conversion functions
 def deg2rad(deg):
-        return deg * math.pi / 180.0
+    return deg * math.pi / 180.0
+
 def rad2deg(rad):
-        return 180.0 * rad / math.pi
+    return 180.0 * rad / math.pi
 
-#Get and set the number of cores to be used by TensorFlow
-if(len(sys.argv) > 1):
-	NCPU = int(sys.argv[1])
-else:
-	NCPU = 1
-config = tf.ConfigProto(intra_op_parallelism_threads=NCPU, \
-                        inter_op_parallelism_threads=NCPU, \
-                        allow_soft_placement=True, \
-                        device_count = {'CPU': 1})
-
-#The max number of frames to be processed, 
-#    and the number of frames already processed
-NFRAMES = 1000
-curFrame = 0
-
-#Periodic task options
-period = 50
-is_periodic = True
-
-#Load the model
-sess = tf.InteractiveSession(config=config)
+# load the model
+sess = tf.InteractiveSession()
 saver = tf.train.Saver()
 model_load_path = "model/model.ckpt"
 saver.restore(sess, model_load_path)
+print("model loaded successfully.")
 
-#Create lists for tracking operation timings
-cap_time_list = []
-prep_time_list = []
-pred_time_list = []
-tot_time_list = []
-
-print('---------- Processing video for epoch 1 ----------')
-
-#Open the video file
+# video processing
 vid_path = 'epoch-1.avi'
-assert os.path.isfile(vid_path)
+assert os.path.isfile(vid_path), f"video file {vid_path} not found."
 cap = cv2.VideoCapture(vid_path)
+print(f"processing video {vid_path}.")
 
-#Process the video while recording the operation execution times
-print('Performing inference...')
-time_start = time.time()
-first_frame = True
+curFrame = 0
+NFRAMES = 1000
 count = 0
-while(1):
-	if curFrame < NFRAMES:
-		cam_start = time.time()
 
-		#Get the next video frame
-		ret, img = cap.read()
-		if not ret:
-			break
+while curFrame < NFRAMES:
+    ret, img = cap.read()
+    if not ret:
+        print("end of video or error reading frame.")
+        break
 
-		prep_start = time.time()
+    img = cv2.resize(img, (200, 66)) / 255.0
 
-		#Preprocess the input frame
-		img = cv2.resize(img, (200, 66))
-		img = img / 255.
+    rad = model.y.eval(feed_dict={model.x: [img]})[0][0]
+    deg = str(int(rad2deg(rad)))
 
-		pred_start = time.time()
+    # send every 4th prediction to the HiFive
+    if count % 4 == 0:
+        try:
+            ser.write((deg + '\n').encode())
+            print(f"sent {deg} through serial communication.")
+        except Exception as e:
+            print(f"error sending data: {e}")
 
-		#Feed the frame to the model and get the control output
-		rad = model.y.eval(feed_dict={model.x: [img]})[0][0]
+    curFrame += 1
+    count += 1
 
-		# convert the possible float to an int
-		deg = str(int(rad2deg(rad)))
-        
-		# Your code goes here in this if statement
-		# The if condition is used to send every 4th
-		# prediction from the model. This is so that
-		# the HiFive can run the other functions in between
-		if count%4 == 0:
-			# establish a serial connection
-			ser = serial.Serial("/dev/ttyAMA1", 115200) # change platformio to ttyAMA1 (potentially temporary change)
-
-			# convert the string to bytes
-			ser.write(bytes(deg) + '\n')
-
-			# print status/debug message
-			# print(f"sent {deg} through serial communication.")
-			# ^^
-			print("Sent" + deg + " through serial communication.")
-
-		pred_end = time.time()
-
-		#Calculate the timings for each step
-		cam_time  = (prep_start - cam_start)*1000
-		prep_time = (pred_start - prep_start)*1000
-		pred_time = (pred_end - pred_start)*1000
-		tot_time  = (pred_end - cam_start)*1000
-
-		# print('pred: {:0.2f} deg. took: {:0.2f} ms | cam={:0.2f} prep={:0.2f} pred={:0.2f}'.format(deg, tot_time, cam_time, prep_time, pred_time)
-
-		# python 2 compatibility
-		print('pred: ' + str(deg) + 'deg. took:' + str(tot_time) +  'ms | cam=' + str(cam_time) + ' prep=' + str(prep_time) + ' pred=' + str(pred_time))
-		
-		#Don't include the timings for the first frame due to cache warmup
-		if first_frame:
-			first_frame = False
-		else:
-			tot_time_list.append(tot_time)
-			curFrame += 1
-        
-		#Wait for next period
-		wait_time = (period - tot_time) / 1000
-		if is_periodic and wait_time > 0:
-			time.sleep(wait_time)
-		count += 1
-	else:
-		break
-	
 cap.release()
+print("video processing complete.")
 
 #Calculate and output FPS/frequency
 fps = curFrame / (time.time() - time_start)
