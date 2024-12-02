@@ -63,6 +63,10 @@ print('Performing inference...')
 time_start = time.time()
 first_frame = True
 count = 0
+
+# establish the serial communication
+ser = serial.Serial("/dev/ttyAMA1", 115200)
+
 while(1):
 	if curFrame < NFRAMES:
 		cam_start = time.time()
@@ -91,12 +95,12 @@ while(1):
 		# prediction from the model. This is so that
 		# the HiFive can run the other functions in between
 		if count%4 == 0:
-			# establish a serial connection
-			ser = serial.Serial("/dev/ttyAMA1", 115200) # change platformio to ttyAMA1 (potentially temporary change)
-
 			# convert the string to bytes
-			ser.write(bytes(deg) + '\n')
+			# ser.write(bytes(deg) + '\n')
 
+			# send the raw string through serial communication
+			ser.write(deg + '\n')
+			
 			# print status/debug message
 			# print(f"sent {deg} through serial communication.")
 			# ^^
