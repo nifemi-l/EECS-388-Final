@@ -63,24 +63,21 @@ int read_from_pi(int devid)
     
     char data [100];
 
-    while (1) {
-        if (ser_isready(devid))
-        {
-            int angle;
+    if (ser_isready(devid))
+    {
+        int angle;
 
-            ser_readline(1, 100, data);
+        ser_readline(1, 100, data);
 
-            // change bytes to int
-            // sscanf(data, "%d", &angle);
+        // change bytes to int
+        // sscanf(data, "%d", &angle);
 
-            // attempt to change str to int
-            sscanf(data, "%d", &angle);
+        // attempt to change str to int
+        sscanf(data, "%d", &angle);
 
-            return angle;
-        }
+        return angle;
     }
     return 0;
-
 }
 
 void steering(int gpio, int pos)
