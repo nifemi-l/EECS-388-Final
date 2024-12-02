@@ -71,6 +71,9 @@ int read_from_pi(int devid)
             ser_readline(1, 100, data);
 
             // change bytes to int
+            // sscanf(data, "%d", &angle);
+
+            // attempt to change str to int
             sscanf(data, "%d", &angle);
 
             return angle;
