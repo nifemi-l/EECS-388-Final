@@ -66,6 +66,7 @@ count = 0
 
 # establish the serial communication
 ser = serial.Serial("/dev/ttyAMA1", 115200)
+print('Serial connection established\n')
 
 while(1):
 	if curFrame < NFRAMES:
